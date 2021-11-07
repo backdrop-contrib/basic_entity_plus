@@ -166,6 +166,11 @@ function basic_entity_plus_menu() {
 function basic_entity_plus_menu_alter(&$items) {
   $items['basic_entity_plus/add']['tab_parent'] = 'admin/content/basic-entity-plus/list';
   $items['basic_entity_plus/add']['tab_root'] = 'admin/content';
+
+  // The following alteration is done because of a bug in Entity UI
+  // see https://github.com/backdrop-contrib/entity_ui/issues/7
+  // @todo Remove when the bug is fixed
+  $items['basic_entity_plus/add']['page callback'] = 'basic_entity_plus_bundle_add_page'; 
 }
 /**
  * Implements hook_permission().
@@ -461,4 +466,41 @@ function basic_entity_plus_field_extra_fields() {
     $extra_fields['basic_entity_plus'][$type]['display'] = $display;
   }
   return $extra_fields;
+}
+
+
+/**
+ * Page callback to show links to add an entity of a specific bundle.
+ * 
+ * NOTE: This is a temporary fix to a  Entity UI bug reported here:
+ * https://github.com/backdrop-contrib/entity_ui/issues/7
+ *
+ * @todo Remove when that bug is fixed
+ * 
+ * Entity modules that provide a further description to their bundles may wish
+ * to implement their own version of this to show these.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ */
+function basic_entity_plus_bundle_add_page($entity_type) {
+  // Set the title, as we're a MENU_LOCAL_ACTION and hence just get tab titles.
+  backdrop_set_title(entity_ui_get_action_title('add', $entity_type));
+
+  // Get entity info for our bundles.
+  $info = entity_get_info($entity_type);
+  $items = array();
+  foreach ($info['bundles'] as $bundle_name => $bundle_info) {
+    // Create an empty entity with just the bundle set to check for access.
+    $dummy_entity = entity_create($entity_type, array(
+      $info['entity keys']['bundle'] => $bundle_name,
+    ));
+    // If modules use a uid, they can default to the current-user
+    // in their create() method on the storage controller.
+    if (entity_access('create', $entity_type, $dummy_entity, $account = NULL)) {
+      $add_path = $info['admin ui']['path'] . '/add/' . $bundle_name;
+      $items[] = l(t('Add @label', array('@label' => $bundle_info['label'])), $add_path); 
+    }
+  }
+  return theme('item_list', array('items' => $items));
 }
