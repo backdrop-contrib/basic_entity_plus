@@ -1,0 +1,9 @@
+type = module
+name = Basic Entity Plus
+description = An example of an entity built over Entity Plus and Entity UI
+package = Entity
+backdrop = 1.x
+
+dependencies[] = entity_plus
+dependencies[] = entity_token
+dependencies[] = entity_ui
