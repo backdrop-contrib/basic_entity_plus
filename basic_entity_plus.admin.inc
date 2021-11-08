@@ -78,7 +78,7 @@ function basic_entity_plus_type_form_submit_delete(&$form, &$form_state) {
 }
 
 /**
- * Order type delete form.
+ * Entity type delete form.
  */
 function basic_entity_plus_type_form_delete_confirm($form, &$form_state, $basic_entity_plus_type) {
   $form_state['basic_entity_plus_type'] = $basic_entity_plus_type;
@@ -94,7 +94,7 @@ function basic_entity_plus_type_form_delete_confirm($form, &$form_state, $basic_
 }
 
 /**
- * Order type delete form submit handler.
+ * Entity type delete form submit handler.
  */
 function basic_entity_plus_type_form_delete_confirm_submit($form, &$form_state) {
   $basic_entity_plus_type = $form_state['basic_entity_plus_type'];
@@ -107,32 +107,7 @@ function basic_entity_plus_type_form_delete_confirm_submit($form, &$form_state) 
 }
 
 /**
- * Page to select basic_entity_plus Type to add new basic_entity_plus.
- */
-function basic_entity_plus_admin_add_page() {
-  $items = array();
-  foreach (basic_entity_plus_types() as $basic_entity_plus_type_key => $basic_entity_plus_type) {
-    $items[] = l(entity_label('basic_entity_plus_type', $basic_entity_plus_type), 'basic_entity_plus/add/' . $basic_entity_plus_type_key);
-  } 
-  return array('list' => array('#theme' => 'item_list', '#items' => $items, '#title' => t('Select type of Basic Entity Plus to create.')));
-}
-
-/**
- * Add new basic_entity_plus page callback.
- */
-function basic_entity_plus_add($type) {
-  $basic_entity_plus_type = basic_entity_plus_types($type);
-
-  $basic_entity_plus = entity_create('basic_entity_plus', array('type' => $type));
-  backdrop_set_title(t('Create @name', array('@name' => entity_label('basic_entity_plus_type', $basic_entity_plus_type))));
-
-  $output = backdrop_get_form('basic_entity_plus_form', $basic_entity_plus);
-
-  return $output;
-}
-
-/**
- * Order Form.
+ * Entity Form.
  */
 function basic_entity_plus_form($form, &$form_state, $basic_entity_plus) {
   $form_state['basic_entity_plus'] = $basic_entity_plus;
@@ -199,7 +174,7 @@ function basic_entity_plus_form_validate($form, &$form_state) {
 }
 
 /**
- * Order submit handler.
+ * Entity submit handler.
  */
 function basic_entity_plus_form_submit($form, &$form_state) {
   $basic_entity_plus = $form_state['basic_entity_plus'];
