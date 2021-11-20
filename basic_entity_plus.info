@@ -1,5 +1,5 @@
 type = module
-name = Basic Entity Plus
+name = Basic Entity Plus Example
 description = An example of an entity built over Entity Plus and Entity UI
 package = Entity
 backdrop = 1.x
