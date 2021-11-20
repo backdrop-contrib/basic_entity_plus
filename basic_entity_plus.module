@@ -21,6 +21,8 @@ function basic_entity_plus_entity_info() {
         'bundle' => 'type',
       ),
       'bundles' => array(
+        // We provide a bundle definition in code. Others may be created
+        // through the UI at admin/structure/basic_entity_plus-types
        ),
       'load hook' => 'basic_entity_plus_load',
       'view modes' => array(
@@ -92,6 +94,9 @@ function basic_entity_plus_autoload_info() {
 
 /**
  * Implements hook_entity_info_alter().
+ * This function modifies the global entity info definition
+ * to propery create definitions for the different bundles or "types"
+ * created through the UI under admin/structure/basic_entity_plus-types
  */
 function basic_entity_plus_entity_info_alter(&$entity_info) {
   foreach (basic_entity_plus_types() as $type => $info) {

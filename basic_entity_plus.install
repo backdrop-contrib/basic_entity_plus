@@ -104,3 +104,27 @@ function basic_entity_plus_schema() {
 
   return $schema;
 }
+
+/**
+ * Implements hook_install().
+ * We create a default bundle of the entity 
+ * when we install the project. This bundle
+ * will allow the user to create entities 
+ */
+function basic_entity_plus_install() {watchdog('test','test');
+  $type = array(
+    'type' => 'basic_entity_plus_default',
+    'label' => t('Default entity'),
+    'description' => t('A basic entity type installed by default.'),
+  );
+  
+  $op = backdrop_write_record('basic_entity_plus_type', $type);
+  if ($op != FALSE) {
+    // Notify the Field API of our new entity bundle 
+    field_attach_create_bundle('basic_entity_plus_type', 'basic_entity_plus_default');
+  }
+
+  user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array(
+    'view basic_entity_plus entities',
+  ));
+}
