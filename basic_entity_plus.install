@@ -145,4 +145,5 @@ function basic_entity_plus_uninstall() {
     // Instruct field.module to remove fields attached to these bundles 
     field_attach_delete_bundle('basic_entity_plus', $bundle);
   }
+  menu_rebuild();
 }
