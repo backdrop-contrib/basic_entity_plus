@@ -128,3 +128,21 @@ function basic_entity_plus_install() {watchdog('test','test');
     'view basic_entity_plus entities',
   ));
 }
+
+/** 
+ * Implements hook_uninstall().
+ */
+function basic_entity_plus_uninstall() {
+  // Remove the view showing basic_entity_plus entities
+  $config = config('views.view.basic_entity_plus');
+  $config->delete();
+
+  // Get all basic_entity_plus bundles
+  $query = db_select('basic_entity_plus_type', 'b');
+  $query->addField('b', 'type');
+  $bundles = $query->execute()->fetchCol(0);
+  foreach ($bundles as $bundle) {
+    // Instruct field.module to remove fields attached to these bundles 
+    field_attach_delete_bundle('basic_entity_plus', $bundle);
+  }
+}
