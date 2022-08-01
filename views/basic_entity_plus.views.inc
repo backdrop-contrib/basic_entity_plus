@@ -8,18 +8,10 @@
 
 /**
  * Implements hook_views_data().
+ * 
+ * Defines custom views field handlers to view, edit and delete. 
  */
 function basic_entity_plus_views_data_alter(&$data) {
-  
-  $data['basic_entity_plus']['bulk_form'] = array(
-    'title' => t('Bulk operations'),
-    'help' => t('Provides a checkbox on each row and a form for executing bulk actions on basic_entities.'),
-    'real field' => 'basic_entity_plus_id',
-    'field' => array(
-      'handler' => 'views_handler_field_bulk_form',
-      'click sortable' => FALSE,
-    ),
-  );
 
   $data['basic_entity_plus']['view_basic_entity_plus'] = array(
     'field' => array(

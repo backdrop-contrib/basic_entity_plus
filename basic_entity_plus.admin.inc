@@ -24,7 +24,6 @@ function basic_entity_plus_type_form($form, &$form_state, $basic_entity_plus_typ
     '#type' => 'machine_name',
     '#default_value' => isset($basic_entity_plus_type->type) ? $basic_entity_plus_type->type : '',
     '#maxlength' => 32,
-    '#disabled' => $basic_entity_plus_type->isLocked() && $op != 'clone',
     '#machine_name' => array(
       'exists' => 'basic_entity_plus_types',
       'source' => array('label'),
@@ -45,7 +44,7 @@ function basic_entity_plus_type_form($form, &$form_state, $basic_entity_plus_typ
     '#weight' => 40,
   );
 
-  if (!$basic_entity_plus_type->isLocked() && $op != 'add' && $op != 'clone') {
+  if ($op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete basic_entity_plus type'),
@@ -156,11 +155,17 @@ function basic_entity_plus_form($form, &$form_state, $basic_entity_plus) {
   // Show Delete button if we edit basic_entity_plus.
   $basic_entity_plus_id = entity_plus_id('basic_entity_plus', $basic_entity_plus);
   if (!empty($basic_entity_plus_id) && basic_entity_plus_access('edit', $basic_entity_plus)) {
-    // Show the Delete button only if basic_entity_plus does not contain students
+    // Show the Delete link only if basic_entity_plus does not contain students
+    $basic_entity_plus_uri = $basic_entity_plus->uri();
     $form['actions']['delete'] = array(
-      '#type' => 'submit',
-      '#value' => t('Delete'),
-      '#submit' => array('basic_entity_plus_form_submit_delete'),
+      '#type' => 'link',
+      '#title' => t('Delete'),
+      '#href' => $basic_entity_plus_uri['path'] . '/delete',
+      '#options' => array(
+        'query' => isset($_GET['destination']) ? backdrop_get_destination() : array(),
+        'attributes' => array('class' => array('button', 'button-secondary', 'form-delete'))
+      ),
+      '#weight' => 15,
     );      
   }
 
@@ -183,17 +188,11 @@ function basic_entity_plus_form_submit($form, &$form_state) {
 
   basic_entity_plus_save($basic_entity_plus);
 
-  $basic_entity_plus_uri = basic_entity_plus_uri('basic_entity_plus', $basic_entity_plus);
+  $basic_entity_plus_uri = $basic_entity_plus->uri();
 
   $form_state['redirect'] = $basic_entity_plus_uri['path'];
 
   backdrop_set_message(t('Basic Entity %title saved.', array('%title' => entity_label('basic_entity_plus', $basic_entity_plus))));
-}
-
-function basic_entity_plus_form_submit_delete($form, &$form_state) {
-  $basic_entity_plus = $form_state['basic_entity_plus'];
-  $basic_entity_plus_uri = basic_entity_plus_uri('basic_entity_plus', $basic_entity_plus);
-  $form_state['redirect'] = $basic_entity_plus_uri['path'] . '/delete';
 }
 
 /**

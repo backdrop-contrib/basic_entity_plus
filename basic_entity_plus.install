@@ -6,6 +6,7 @@
 function basic_entity_plus_schema() {
   $schema = array();
 
+  // This table will hold basic_entity_plus entities.
   $schema['basic_entity_plus'] = array(
     'description' => 'The base table for basic_entities.',
     'fields' => array(
@@ -54,6 +55,9 @@ function basic_entity_plus_schema() {
     'primary key' => array('basic_entity_plus_id'),
   );
 
+  // This table will hold bundle definitions for basic_entity_plus entities.
+  // An alternative way to do this is to use the module Entity Plus CMI to store
+  // these definitions as config files. 
   $schema['basic_entity_plus_type'] = array(
     'description' => 'Stores information about all bundles of basic_entity_plus entities.',
     'fields' => array(
@@ -82,7 +86,7 @@ function basic_entity_plus_schema() {
         'size' => 'medium',
         'translatable' => TRUE,
       ),
-      'status' => array(
+      'status' => array( // This is currently not in use.
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0x01,
@@ -107,24 +111,10 @@ function basic_entity_plus_schema() {
 
 /**
  * Implements hook_install().
- * We create a default bundle of the entity 
- * when we install the project. This bundle
- * will allow the user to create entities 
  */
-function basic_entity_plus_install() {watchdog('test','test');
-  $type = array(
-    'type' => 'basic_entity_plus_default',
-    'label' => t('Default entity'),
-    'description' => t('A basic entity type installed by default.'),
-  );
-  
-  $op = backdrop_write_record('basic_entity_plus_type', $type);
-  if ($op != FALSE) {
-    // Notify the Field API of our new entity bundle 
-    field_attach_create_bundle('basic_entity_plus_type', 'basic_entity_plus_default');
-  }
-
+function basic_entity_plus_install() {
   user_role_grant_permissions(BACKDROP_AUTHENTICATED_ROLE, array(
+    // Grant viewing permision to authenticated users.
     'view basic_entity_plus entities',
   ));
 }
@@ -147,3 +137,26 @@ function basic_entity_plus_uninstall() {
   }
   menu_rebuild();
 }
+
+
+/** 
+ * Creates the default basic_entity_plus type.
+ * 
+ * This undocumented hook is invoked by Entity Plus when enabling modules.
+ * The syntax is hook_default_ENTITY_TYPE(). The entity type must be a 
+ * configuration entity with the 'exportable' key set to TRUE
+ * .
+ * @see entity_plus_modules_enabled(). 
+ */
+function basic_entity_plus_default_basic_entity_plus_type() {
+  $items = array();
+  $serialized = '{
+    "type" : "basic_entity_plus_default",
+    "label" : "Default entity",
+    "description" : "A basic entity type installed by default.",
+    "module" : "basic_entity_plus"
+  }';
+  $items['basic_entity_plus_default'] = entity_get_controller('basic_entity_plus_type')->import($serialized);
+  return $items;
+ }
+ 

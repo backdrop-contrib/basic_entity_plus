@@ -14,27 +14,32 @@ function basic_entity_plus_entity_info() {
       'fieldable' => TRUE,
       'entity keys' => array(
         'id' => 'basic_entity_plus_id',
-        'bundle' => 'type',
+        'bundle' => 'type', // This has to match the basic_entity_plus_type 'name' key. 
         'label' => 'title',
       ),
       'bundle keys' => array(
         'bundle' => 'type',
       ),
       'bundles' => array(
-        // We provide a bundle definition in code. Others may be created
-        // through the UI at admin/structure/basic_entity_plus-types
-       ),
-      'load hook' => 'basic_entity_plus_load',
-      'view modes' => array(
+        // We provide bundle definitions below. See basic_entity_plus_entity_info_alter().
       ),
 
-      'label callback' => 'entity_label',
-
-      // This key is also used by the core entity.tokens.inc to provide a url token
-      'uri callback' => 'basic_entity_plus_uri', 
+      'view modes' => array(
+        // Provide a new view mode.
+        'special' => array(
+          'label' => 'Special',
+          'custom settings' => FALSE // Use the default settings.
+        )
+      ),
 
       'module' => 'basic_entity_plus',
+
+      // While this key is not defined in hook_entity_info(), we use it for
+      // convenience, to provide an easier way to check access outside the class.
       'access callback' => 'basic_entity_plus_access',
+
+      // This controller is used to display non Field API extra fields.
+      'extra fields controller class' => 'EntityDefaultExtraFieldsController',
 
       // By including 'admin ui' we are telling Entity UI to create menu items 
       // for viewing, adding, editing and deleting basic_entity_plus entities
@@ -44,6 +49,7 @@ function basic_entity_plus_entity_info() {
         // Indicates the name of the file that contains the edit/add and delete forms
         // These forms must be named basic_entity_plus_form etc.
         'file' => 'basic_entity_plus.admin.inc',
+        // For the autoloaders used in the menu items.
         'menu wildcard' => '%basic_entity_plus',
        ),
     ),
@@ -52,27 +58,40 @@ function basic_entity_plus_entity_info() {
   // Definition for the bundle definition entity
   $return['basic_entity_plus_type'] = array(
     'label' => t('Basic Entity Plus type'),
-    'entity class' => 'BasicEntityPlus',
+    'entity class' => 'BasicEntityPlusType',
     'controller class' => 'BasicEntityPlusTypeController',
     'base table' => 'basic_entity_plus_type',
     'fieldable' => FALSE,
     'bundle of' => 'basic_entity_plus',
+
+    // The keys 'configuration' and 'exportable' are required to tell Entity Plus
+    // that these entities will define bundles of another entity.
+    'configuration' => TRUE,
     'exportable' => TRUE,
+
     'entity keys' => array(
       'id' => 'id',
-      'name' => 'type',
+
+      // The value of the 'name' element must match the value of the 'bundle'
+      // element for the entity whose bundles it defines. In this case, 'type'.
+      // The 'type' columns in the DB will store tha names of the bundles. 
+      'name' => 'type', 
+
       'label' => 'label',
       'module' => 'module',
     ),
+
     'module' => 'basic_entity_plus',
-    // Enable the entity API's admin UI to create 
+
+    // Enable Entity UI's admin UI to create bundles. This will provide a basic
+    // UI where links for Manage Fields and Manage Displays will also be found. 
     'admin ui' => array(
       'path' => 'admin/structure/basic_entity_plus-types',
       'file' => 'basic_entity_plus.admin.inc',
       'controller class' => 'EntityDefaultUIController',
     ),
+
     'access callback' => 'basic_entity_plus_type_access',
-    'uri callback' => 'basic_entity_plus_type_uri',
   );
 
   return $return;
@@ -83,7 +102,8 @@ function basic_entity_plus_entity_info() {
  */
 function basic_entity_plus_autoload_info() {
   return array(
-    'BasicEntityPlus' => 'basic_entity_plus.controller.inc',
+    'BasicEntityPlus' => 'basic_entity_plus.class.inc',
+    'BasicEntityPlusType' => 'basic_entity_plus.class.inc',
     'BasicEntityPlusController' => 'basic_entity_plus.controller.inc',
     'BasicEntityPlusTypeController' =>  'basic_entity_plus.controller.inc',
     'views_handler_field_basic_entity_plus_link_edit' => 'views/views_handler_field_basic_entity_plus_link_edit.inc',
@@ -94,8 +114,9 @@ function basic_entity_plus_autoload_info() {
 
 /**
  * Implements hook_entity_info_alter().
- * This function modifies the global entity info definition
- * to propery create definitions for the different bundles or "types"
+ * 
+ * This function modifies the  entity info definition
+ * to properly create definitions for the different bundles or "types"
  * created through the UI under admin/structure/basic_entity_plus-types
  */
 function basic_entity_plus_entity_info_alter(&$entity_info) {
@@ -111,57 +132,17 @@ function basic_entity_plus_entity_info_alter(&$entity_info) {
   }
 }
 
-/** 
- * Returns the URI for basic_entity_plus entities
- * @param $entity_type
- *    The entity type
- * @param $entity
- *    The entity for which to generate a path
- * @return
- *   An array containing the 'path' and 'options' keys used to build the URI of
- *   the entity, and matching the signature of url(). NULL if the entity has no
- *   URI of its own.
- */
-function basic_entity_plus_uri($entity_type, $entity) {
-  return array(
-    'path' => 'basic_entity_plus/'.$entity->id(),
-    'options' => array(),
-  );
-}
-
-/**
- * Returns the URI for basic_entity_plus_type configuration entity
- * This is here only because the entity types overview table generated
- * by Entity UI needs a URI callback to create a link. Another option is
- * for this callback to return an empty string. 
- */
-function basic_entity_plus_type_uri($entity_type, $entity) {
-  return array(
-    'path' => 'admin/structure/basic_entity_plus-types/manage',
-    'options' => array(),
-  );
-}
-
 /**
  * Implements hook_menu().
+ * 
+ * Nothing is needed here. 
  * Entity UI provides links to add, edit and delete entities and bundles
- * as well as tabs to manage fields and displays for this entity type
+ * as well as links to manage fields and displays for this entity type
  */
-function basic_entity_plus_menu() {
-  $items = array();
-  
-  // The only link we provide is for the delete bulk operation
-  $items['admin/structure/basic_entity_plus/action/delete'] = array(
-    'title' => 'Confirm basic_entity_plus deletion',
-    'type' => MENU_VISIBLE_IN_BREADCRUMB,
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('basic_entity_plus_multiple_delete_confirm'),
-    'access arguments' => array('edit any basic_entity_plus entity'),
-    'file' => 'basic_entity_plus.admin.inc',
-  );
-
-  return $items;
-}
+// function basic_entity_plus_menu() {
+//   $items = array();
+//   return $items;
+// }
 
 /** 
  * Implements hook_menu_alter().
@@ -223,7 +204,7 @@ function basic_entity_plus_permission() {
 /**
  * Implements hook_entity_property_info_alter().
  * 
- * This hook provides property definitions for metadata wrappers and views
+ * This hook provides property definitions for metadata wrappers and views.
  */
 function basic_entity_plus_entity_property_info_alter(&$info) {
   $properties = &$info['basic_entity_plus']['properties'];
@@ -262,49 +243,6 @@ function basic_entity_plus_entity_property_info_alter(&$info) {
     'required' => TRUE,
     'schema field' => 'uid',
   );
-}
-
-/**
- * Implements hook_action_info().
- * 
- * Defines the delete bulk operation
- */
-function basic_entity_plus_action_info() {
-  return array(
-    'basic_entity_plus_delete_action' => array(
-      'type' => 'basic_entity_plus',
-      'label' => t('Delete basic_entity_plus'),
-      'callback' => 'basic_entity_plus_delete_action'
-    ),
-  );
-}
-
-/**
- * Callback for bulk operation. Queues a basic_entity_plus for deletion.
- *
- * @param BasicEntityPlus $basic_entity_plus
- *   A basic_entity_plus entity.
- * @param $context
- *   Contextual information about the triggered action.
- *
- * @ingroup actions
- */
-function basic_entity_plus_delete_action($basic_entity_plus, &$context) {
-  // Save the list of basic_entities to be deleted in the session. Append to the existing
-  // list if within the last minute, otherwise start a new list of basic_entities.
-  $last_action_time = 0;
-  if (isset($_SESSION['basic_entity_plus_delete_action'])) {
-    $last_action_time = $_SESSION['basic_entity_plus_delete_action']['timestamp'];
-  }
-  if (REQUEST_TIME - $last_action_time > 60) {
-    $_SESSION['basic_entity_plus_delete_action'] = array(
-      'timestamp' => REQUEST_TIME,
-      'basic_entity_plus_ids' => array(),
-    );
-  }
-
-  $_SESSION['basic_entity_plus_delete_action']['basic_entity_plus_ids'][] = $basic_entity_plus->basic_entity_plus_id;
-  $context['redirect'] = 'admin/structure/basic_entity_plus/action/delete';
 }
 
 /*******************************************************************************
@@ -381,8 +319,12 @@ function basic_entity_plus_delete_multiple($basic_entity_plus_ids) {
  ****************************** BasicEntityPlus Type API  **********************
  ******************************************************************************/
 
-/**
+ /**
  * Access callback for basic_entity_plus Type.
+ * 
+ * This is simpler than the access callback for the basic_entity_plus entities,
+ * as we are only concerned with administration-level access for defining bundles
+ * for basic_entity_plus.  
  */
 function basic_entity_plus_type_access($op) {
   return user_access('administer basic_entity_plus types');
@@ -437,7 +379,6 @@ function basic_entity_plus_views_api() {
   );
 }
 
-
 /**
  * Implements hook_field_extra_fields().
  *
@@ -460,10 +401,22 @@ function basic_entity_plus_field_extra_fields() {
     'description' => t('The name of the basic_entity_plus.'),
   );
 
+  $display['uid'] = array(
+    'label' => t("Author"),
+    'weight' => -11,
+    'description' => t("The author of the basic_entity_plus."),
+  );
+
   $display['created'] = array(
     'label' => t("Date created"),
     'weight' => 0,
     'description' => t("The date the basic_entity_plus was posted."),
+  );
+
+  $display['changed'] = array(
+    'label' => t("Date changed"),
+    'weight' => 1,
+    'description' => t("The date the basic_entity_plus was changed."),
   );
 
   foreach (basic_entity_plus_types() as $type => $info) {
@@ -473,6 +426,19 @@ function basic_entity_plus_field_extra_fields() {
   return $extra_fields;
 }
 
+/** 
+ * Implements template_proprocess_entity_plus_property().
+ * 
+ * This is used to convert the Date created and Date changed properties into
+ * a proper date format. Ideally this would be done via en UI, but Entity Plus
+ * or Backdrop do not provide a way to do this for properties through the 
+ * Manage fields tab. 
+ */
+function basic_entity_plus_preprocess_entity_plus_property(&$variables) {
+  if ($variables['property_name'] == 'created' || $variables['property_name'] == 'changed') {
+    $variables['content'] = format_date($variables['content']);
+  }
+}
 
 /**
  * Page callback to show links to add an entity of a specific bundle.
@@ -502,7 +468,7 @@ function basic_entity_plus_bundle_add_page($entity_type) {
     ));
     // If modules use a uid, they can default to the current-user
     // in their create() method on the storage controller.
-    if (entity_access('create', $entity_type, $dummy_entity, $account = NULL)) {
+    if (entity_plus_access('create', $entity_type, $dummy_entity, $account = NULL)) {
       $add_path = $info['admin ui']['path'] . '/add/' . $bundle_name;
       $items[] = l(t('Add @label', array('@label' => $bundle_info['label'])), $add_path); 
     }
