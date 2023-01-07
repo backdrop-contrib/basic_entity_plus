@@ -151,6 +151,9 @@ class BasicEntityPlus extends Entity {
 
   /**
    * Returns a translated string if the module Internationalization exists.
+   * 
+   * This method was part of D7's Entity API class, but was removed in bAckdrop's
+   * Entity class. It is mostly used to provide translations for entity properties. 
    */
   public function getTranslation($property, $langcode = NULL) {
     $all_info = entity_plus_get_all_property_info($this->entityType);
@@ -165,7 +168,7 @@ class BasicEntityPlus extends Entity {
         // This option requires the module i18n_string to be enabled. It also 
         // requires that the flag 'i18n string` be TRUE in hook_entity_property_info().
        $name = $this->entityInfo['module'] . ':' . $this->entityType . ':' . $this->id() . ':' . $property;
-       return entity_i18n_string($name, $this->$property, $langcode);
+       return entity_plus_i18n_string($name, $this->$property, $langcode);
       }
     }
     return $this->$property;

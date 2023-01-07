@@ -52,6 +52,11 @@ function basic_entity_plus_entity_info() {
         // For the autoloaders used in the menu items.
         'menu wildcard' => '%basic_entity_plus',
        ),
+
+       // This tells Entity Plus to make the text entered by the user in the 
+       // entity properties (e.g. title) available to i18n_string for translations.
+       // NB: this will only work once Entity Plus issue #67 is resolved.
+       'i18n controller class' => 'EntityDefaultI18nStringController',
     ),
   );
 
@@ -92,6 +97,11 @@ function basic_entity_plus_entity_info() {
     ),
 
     'access callback' => 'basic_entity_plus_type_access',
+
+    // This tells Entity Plus to make the text entered by the user in the 
+    // entity properties (e.g. title) available to i18n_string for translations.
+    // NB: this will only work once Entity Plus issue #67 is resolved.
+    'i18n controller class' => 'EntityDefaultI18nStringController',
   );
 
   return $return;
@@ -215,6 +225,9 @@ function basic_entity_plus_entity_property_info_alter(&$info) {
     'description' => t('The title of the basic_entity_plus.'),
     'setter callback' => 'entity_plus_property_verbatim_set',
     'schema field' => 'title',
+    // Tell i18n_string that this property is translatable.
+    'translatable' => TRUE,
+    'i18n string' => TRUE,
   );
 
   $properties['created'] = array(
@@ -243,6 +256,13 @@ function basic_entity_plus_entity_property_info_alter(&$info) {
     'required' => TRUE,
     'schema field' => 'uid',
   );
+
+  // Tell i18n_string that these properties are translatable.
+  $info['basic_entity_plus_type']['properties']['label']['translatable'] = TRUE;
+  $info['basic_entity_plus_type']['properties']['label']['i18n string'] = TRUE;
+  $info['basic_entity_plus_type']['properties']['description']['translatable'] = TRUE;
+  $info['basic_entity_plus_type']['properties']['description']['i18n string'] = TRUE;
+
 }
 
 /*******************************************************************************
@@ -475,3 +495,24 @@ function basic_entity_plus_bundle_add_page($entity_type) {
   }
   return theme('item_list', array('items' => $items));
 }
+
+/** 
+ * Creates the default basic_entity_plus type.
+ * 
+ * This undocumented hook is invoked by Entity Plus when enabling modules.
+ * The syntax is hook_default_ENTITY_TYPE(). The entity type must be a 
+ * configuration entity with the 'exportable' key set to TRUE
+ * .
+ * @see entity_plus_modules_enabled(). 
+ */
+function basic_entity_plus_default_basic_entity_plus_type() {
+  $items = array();
+  $serialized = '{
+    "type" : "basic_entity_plus_default",
+    "label" : "Default entity",
+    "description" : "A basic entity type installed by default.",
+    "module" : "basic_entity_plus"
+  }';
+  $items['basic_entity_plus_default'] = entity_get_controller('basic_entity_plus_type')->import($serialized);
+  return $items;
+ }

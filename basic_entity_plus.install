@@ -138,25 +138,4 @@ function basic_entity_plus_uninstall() {
   menu_rebuild();
 }
 
-
-/** 
- * Creates the default basic_entity_plus type.
- * 
- * This undocumented hook is invoked by Entity Plus when enabling modules.
- * The syntax is hook_default_ENTITY_TYPE(). The entity type must be a 
- * configuration entity with the 'exportable' key set to TRUE
- * .
- * @see entity_plus_modules_enabled(). 
- */
-function basic_entity_plus_default_basic_entity_plus_type() {
-  $items = array();
-  $serialized = '{
-    "type" : "basic_entity_plus_default",
-    "label" : "Default entity",
-    "description" : "A basic entity type installed by default.",
-    "module" : "basic_entity_plus"
-  }';
-  $items['basic_entity_plus_default'] = entity_get_controller('basic_entity_plus_type')->import($serialized);
-  return $items;
- }
  

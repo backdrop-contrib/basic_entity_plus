@@ -33,6 +33,7 @@ function basic_entity_plus_type_form($form, &$form_state, $basic_entity_plus_typ
 
   $form['description'] = array(
     '#type' => 'textarea',
+    '#title' => t('Description'),
     '#default_value' => isset($basic_entity_plus_type->description) ? $basic_entity_plus_type->description : '',
     '#description' => t('Description about the basic_entity_plus type.'),
   );
