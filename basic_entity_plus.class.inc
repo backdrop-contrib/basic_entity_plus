@@ -97,15 +97,41 @@ class BasicEntityPlus extends Entity {
   }
 
   /**
+   * Overrides Entity::createAccess().
+   */
+  public static function createAccess($bundle = NULL, $account = NULL) {
+    global $user;
+    $rights = &backdrop_static('basic_entity_plus_access', array());
+
+    // If no user object is supplied, the access check is for the current user.
+    if (empty($account)) {
+      $account = $user;
+    }
+
+    // If we've already checked access for this user and op, return from static
+    // cache.
+    if (isset($rights[$account->uid][$bundle])) {
+      return $rights[$account->uid][$bundle];
+    }
+
+    $rights[$account->uid][$bundle] = basic_entity_plus_access('create');
+    return $rights[$account->uid][$bundle];
+  }
+
+  /**
    * {@inheritdoc}
    * 
-   * This provices provides access check for view, create, update and delete.
+   * This provides access check for view, create, update and delete.
    * Typically the checks can be done inside this method. Instead we defined
    * an access callback in hook_entity_info() for convenience. 
    */
   public function access($op, $account = NULL) {
     global $user;
-    $rights = &backdrop_static("{$this->entityType}_access", array());
+    $rights = &backdrop_static('basic_entity_plus_access', array());
+
+    if ($op == 'create') {
+      return self::createAccess($this->bundle(), $account);
+    }
 
     // If no user object is supplied, the access check is for the current user.
     if (empty($account)) {
